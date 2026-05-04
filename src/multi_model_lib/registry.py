@@ -49,12 +49,13 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "api_fallback": None,
     },
     "rovo-dev": {
-        "binary": "rovo-dev",
-        "args_template": ["chat", "--prompt", "{prompt}", "--non-interactive"],
+        "binary": "acli",
+        "args_template": ["rovodev", "chat", "--prompt", "{prompt}"],
         "provider": "atlassian-rovo",
         "subscription": "Atlassian Rovo",
         "parse_mode": "text",
         "install_hint": (
+            "brew install acli && acli rovodev auth login\n"
             "See https://support.atlassian.com/rovo/docs/"
             "install-and-run-rovo-dev-cli-on-your-device/"
         ),

@@ -50,7 +50,7 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
     },
     "rovo-dev": {
         "binary": "acli",
-        "args_template": ["rovodev", "chat", "--prompt", "{prompt}"],
+        "args_template": ["rovodev", "{prompt}"],
         "provider": "atlassian-rovo",
         "subscription": "Atlassian Rovo",
         "parse_mode": "text",

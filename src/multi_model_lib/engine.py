@@ -310,10 +310,28 @@ def _build_command(entry: dict[str, Any], prompt: str) -> list[str]:
 def _parse_output(name: str, raw: str, parse_mode: str) -> str:
     """Extract response text from model output."""
     if parse_mode == "json":
+        # Claude --output-format json produces JSONL (one JSON object per line)
+        # with system init, assistant messages, and result messages.
+        # We want the assistant's text content.
         try:
+            # Try parsing as JSON array first
             data = json.loads(raw)
-            # Claude JSON output has a "result" or "content" field
-            if isinstance(data, dict):
+            if isinstance(data, list):
+                # JSONL parsed as array — find assistant message or result
+                for item in reversed(data):
+                    if isinstance(item, dict):
+                        if item.get("type") == "assistant" and "message" in item:
+                            msg = item["message"]
+                            if isinstance(msg, dict) and "content" in msg:
+                                content = msg["content"]
+                                if isinstance(content, list):
+                                    texts = [b.get("text", "") for b in content if b.get("type") == "text"]
+                                    if texts:
+                                        return "\n".join(texts)
+                        if item.get("type") == "result":
+                            return item.get("result", raw)
+                return raw
+            elif isinstance(data, dict):
                 if "result" in data:
                     return str(data["result"])
                 if "content" in data:
@@ -323,6 +341,24 @@ def _parse_output(name: str, raw: str, parse_mode: str) -> str:
                     return str(content)
             return raw
         except json.JSONDecodeError:
+            # Try JSONL (newline-delimited JSON)
+            lines = [l.strip() for l in raw.strip().splitlines() if l.strip()]
+            for line in reversed(lines):
+                try:
+                    item = json.loads(line)
+                    if isinstance(item, dict):
+                        if item.get("type") == "assistant" and "message" in item:
+                            msg = item["message"]
+                            if isinstance(msg, dict) and "content" in msg:
+                                content = msg["content"]
+                                if isinstance(content, list):
+                                    texts = [b.get("text", "") for b in content if b.get("type") == "text"]
+                                    if texts:
+                                        return "\n".join(texts)
+                        if item.get("type") == "result":
+                            return item.get("result", "")
+                except json.JSONDecodeError:
+                    continue
             return raw.strip()
     else:
         return raw.strip()

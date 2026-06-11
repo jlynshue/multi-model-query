@@ -50,10 +50,11 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
     },
     "rovo-dev": {
         "binary": "acli",
-        "args_template": ["rovodev", "{prompt}"],
+        "args_template": ["rovodev", "run", "{prompt}"],
         "provider": "atlassian-rovo",
         "subscription": "Atlassian Rovo",
         "parse_mode": "text",
+        "status": "beta",
         "install_hint": (
             "brew install acli && acli rovodev auth login\n"
             "See https://support.atlassian.com/rovo/docs/"
@@ -67,7 +68,8 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "provider": "google-ai-pro",
         "subscription": "Google AI Pro",
         "parse_mode": "text",
-        "install_hint": "npm install -g @anthropic-ai/gemini-cli  # verify actual package name",
+        "status": "stable",
+        "install_hint": "npm install -g @google/gemini-cli && gemini",
         "api_fallback": {
             "provider": "google",
             "env_var": "GOOGLE_API_KEY",
@@ -167,10 +169,15 @@ def detect_available(config: MultiModelConfig) -> dict[str, dict[str, Any]]:
     """Detect which models are available on this system.
 
     Returns a subset of MODEL_REGISTRY with only available models.
+    Models with status "planned" are always excluded.
     """
     available: dict[str, dict[str, Any]] = {}
 
     for name, entry in MODEL_REGISTRY.items():
+        # Skip models that are not yet implemented
+        if entry.get("status") == "planned":
+            continue
+
         # Filter to requested models if specified
         if config.models and name not in config.models:
             continue

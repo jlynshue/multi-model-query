@@ -47,6 +47,21 @@ python3 scripts/multi-model-query.py --ollama-model llama3.1:8b "Hello"
 python3 scripts/multi-model-query.py --no-api-fallback "Hello"
 ```
 
+## Library Usage
+
+Use `multi-model-query` as a Python library for programmatic access:
+
+```python
+import asyncio
+from multi_model_lib import fan_out, MultiModelConfig
+
+results = asyncio.run(fan_out("Your prompt here", MultiModelConfig()))
+for r in results.results:
+    print(f"{r.name}: {r.parsed_response[:80]}")
+```
+
+See [`examples/`](examples/) for more usage patterns.
+
 ## Why Multi-Model?
 
 Different models have different strengths — Claude excels at nuance, Bedrock gives you AWS-native billing, Ollama runs locally with zero cost and full privacy. By querying them in parallel you can compare answer quality, avoid vendor lock-in, and surface model-specific blind spots in seconds rather than minutes of manual copy-paste.

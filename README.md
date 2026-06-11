@@ -47,6 +47,42 @@ python3 scripts/multi-model-query.py --ollama-model llama3.1:8b "Hello"
 python3 scripts/multi-model-query.py --no-api-fallback "Hello"
 ```
 
+## Why Multi-Model?
+
+Different models have different strengths — Claude excels at nuance, Bedrock gives you AWS-native billing, Ollama runs locally with zero cost and full privacy. By querying them in parallel you can compare answer quality, avoid vendor lock-in, and surface model-specific blind spots in seconds rather than minutes of manual copy-paste.
+
+## Example Output
+
+```
+$ python3 scripts/multi-model-query.py "Explain the CAP theorem in one paragraph"
+
+              Multi-Model Query Results — mmq-20260610-143052
+┏━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Model       ┃ Status  ┃ Method    ┃ Time (s) ┃ Response (first 100 chars)                         ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ claude      │ success │ cli       │      1.2 │ The CAP theorem states that a distributed system   │
+│             │         │           │          │ can provide at most two of three guarantees: Co...  │
+├─────────────┼─────────┼───────────┼──────────┼────────────────────────────────────────────────────┤
+│ bedrock     │ success │ api       │      1.8 │ CAP theorem (Brewer's theorem) proves that in any  │
+│             │         │           │          │ networked shared-data system, you can satisfy a...  │
+├─────────────┼─────────┼───────────┼──────────┼────────────────────────────────────────────────────┤
+│ ollama      │ success │ http      │      2.9 │ The CAP theorem say that distributed database can   │
+│             │         │           │          │ only guarantee two of: Consistency, Availabilit...  │
+├─────────────┼─────────┼───────────┼──────────┼────────────────────────────────────────────────────┤
+│ codex       │ success │ cli       │      3.4 │ In distributed systems, the CAP theorem (proved by  │
+│             │         │           │          │ Gilbert and Lynch, 2002) establishes that lufth...  │
+├─────────────┼─────────┼───────────┼──────────┼────────────────────────────────────────────────────┤
+│ goose       │ success │ cli       │      1.5 │ CAP theorem: any distributed data store can only    │
+│             │         │           │          │ deliver two of Consistency, Availability, and P...  │
+└─────────────┴─────────┴───────────┴──────────┴────────────────────────────────────────────────────┘
+
+Total time: 3.8s
+Models invoked: 5
+
+5 models queried in 3.8s (vs ~18s serial)
+Estimated cost: $0.004 (Claude API) + $0.002 (Bedrock) + $0.00 (Ollama local)
+```
+
 ## Architecture
 
 - **Registry** (`src/multi_model_lib/registry.py`) — Model definitions + availability detection
